@@ -209,7 +209,7 @@ export const AuthProvider = ({ children }) => {
         payload: { token, user },
       });
       
-      toast.success(`Welcome to the Alumni Portal, ${user.name}!`);
+      toast.success(`Welcome to Alumni Connect, ${user.name}!`);
       return true;
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed';

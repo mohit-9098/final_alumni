@@ -8,6 +8,8 @@ const ProfilePage = () => {
   const { user, updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   const {
     register,
@@ -32,17 +34,31 @@ const ProfilePage = () => {
         school: user.profile.school || '',
         skills: user.profile.skills ? user.profile.skills.join(', ') : '',
       });
+      setAvatarPreview(user.profile.avatar || null);
+      setAvatarFile(null);
     }
   }, [user, reset]);
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const profileData = {
-        ...data,
-        skills: data.skills ? data.skills.split(',').map(s => s.trim()).filter(s => s) : [],
-      };
-      await updateProfile(profileData);
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('phone', data.phone || '');
+      formData.append('bio', data.bio || '');
+      formData.append('location', data.location || '');
+      formData.append('linkedin', data.linkedin || '');
+      formData.append('graduationYear', data.graduationYear || '');
+      formData.append('branch', data.branch || '');
+      formData.append('school', data.school || '');
+      formData.append('currentCompany', data.currentCompany || '');
+      formData.append('jobTitle', data.jobTitle || '');
+      formData.append('skills', data.skills || '');
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
+      await updateProfile(formData);
       setEditing(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -72,6 +88,8 @@ const ProfilePage = () => {
         jobTitle: user.profile.jobTitle || '',
         skills: user.profile.skills ? user.profile.skills.join(', ') : '',
       });
+      setAvatarFile(null);
+      setAvatarPreview(user.profile.avatar || null);
     }
   };
 
@@ -88,14 +106,42 @@ const ProfilePage = () => {
           <div className="card">
             <div className="text-center">
               <div className="relative inline-block">
-                <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-primary-600 font-bold text-3xl">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center mx-auto mb-4">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-primary-600 font-bold text-3xl">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <button className="absolute bottom-2 right-0 p-1 bg-white rounded-full shadow-lg border border-gray-200">
-                  <Camera className="w-4 h-4 text-gray-600" />
-                </button>
+                {editing && (
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute bottom-2 right-0 p-1 bg-white rounded-full shadow-lg border border-gray-200 cursor-pointer"
+                  >
+                    <Camera className="w-4 h-4 text-gray-600" />
+                  </label>
+                )}
+                {editing && (
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setAvatarFile(file);
+                        setAvatarPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                )}
               </div>
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
               <p className="text-gray-600 capitalize">{user.role}</p>

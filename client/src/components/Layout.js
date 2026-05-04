@@ -16,11 +16,30 @@ import {
   Menu,
   X,
   BookOpen,
-  Award,
   BarChart3,
   UserCheck
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+
+const AppLogo = ({ isCollapsed }) => (
+  <div className="flex items-center min-w-0">
+    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center shadow-soft flex-shrink-0">
+      <svg viewBox="0 0 48 48" className="w-8 h-8" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="20" fill="white" opacity="0.18" />
+        <path d="M15 22L24 17L33 22L24 27L15 22Z" fill="#0f172a" />
+        <path d="M20 26H28V31C28 32.1046 27.1046 33 26 33H22C20.8954 33 20 32.1046 20 31V26Z" fill="#0f172a" />
+        <path d="M28.5 14.5L31.5 10.5L35.5 14.5" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M31.5 10.5V17" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="16.5" cy="13.5" r="2.5" fill="#0f172a" />
+        <circle cx="24" cy="10.5" r="2" fill="#0f172a" />
+        <circle cx="31.5" cy="13.5" r="2.5" fill="#0f172a" />
+      </svg>
+    </div>
+    <span className={`ml-3 truncate transition-all duration-200 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-200 ${isCollapsed ? 'hidden' : 'block'}`}>
+      Alumni Connect
+    </span>
+  </div>
+);
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -220,32 +239,24 @@ const Layout = () => {
       `}>
         <div className="flex flex-col h-full min-h-screen">
           {/* Logo */}
-
-  <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900">
-    <div className="flex items-center min-w-0">
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-soft flex-shrink-0">
-        <Award className="w-5 h-5 text-white" />
-      </div>
-      <span className={`ml-3 truncate transition-all duration-200 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-200 ${isCollapsed ? 'hidden' : 'block'}`}>
-        Alumni Portal
-      </span>
-    </div>
-    {/* Collapse toggle (desktop) */}
-    <button
-      onClick={() => setIsCollapsed(!isCollapsed)}
-      className="lg:block hidden p-1.5 rounded-md text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-      title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-    >
-      {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
-    </button>
-    {/* Mobile close */}
-    <button
-      onClick={() => setSidebarOpen(false)}
-      className="lg:hidden p-1 rounded-md text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
-    >
-      <X className="w-5 h-5" />
-    </button>
-  </div>
+          <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900">
+            <AppLogo isCollapsed={isCollapsed} />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="lg:block hidden p-1.5 rounded-md text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-1 rounded-md text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">

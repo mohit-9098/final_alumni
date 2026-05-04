@@ -1,8 +1,35 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
+
+const uploadFolder = path.join(__dirname, '..', 'uploads', 'avatars');
+fs.mkdirSync(uploadFolder, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadFolder),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${req.user?._id || 'guest'}-${Date.now()}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG, and WEBP images are allowed'), false);
+    }
+  },
+});
 
 const router = express.Router();
 
@@ -179,7 +206,7 @@ router.get('/me', auth, async (req, res) => {
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', auth, [
+router.put('/profile', auth, upload.single('avatar'), [
   body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
   body('phone').optional().matches(/^[+]?[\d\s-()]+$/).withMessage('Please enter a valid phone number'),
   body('bio').optional().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters')
@@ -190,25 +217,46 @@ router.put('/profile', auth, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, phone, bio, location, linkedin, graduationYear, branch, currentCompany, jobTitle, skills } = req.body;
+    const {
+      name,
+      phone,
+      bio,
+      location,
+      linkedin,
+      graduationYear,
+      branch,
+      school,
+      currentCompany,
+      jobTitle,
+      skills,
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update profile fields
+    if (req.file) {
+      user.profile.avatar = `/api/uploads/avatars/${req.file.filename}`;
+    }
+
     if (name) user.name = name;
     if (phone !== undefined) user.profile.phone = phone;
     if (bio !== undefined) user.profile.bio = bio;
     if (location !== undefined) user.profile.location = location;
     if (linkedin !== undefined) user.profile.linkedin = linkedin;
-    if (graduationYear !== undefined) user.profile.graduationYear = graduationYear;
+    if (graduationYear !== undefined) {
+      user.profile.graduationYear = graduationYear ? Number(graduationYear) : undefined;
+    }
     if (branch !== undefined) user.profile.branch = branch;
     if (school !== undefined) user.profile.school = school;
     if (currentCompany !== undefined) user.profile.currentCompany = currentCompany;
     if (jobTitle !== undefined) user.profile.jobTitle = jobTitle;
-    if (skills !== undefined) user.profile.skills = skills;
+    if (skills !== undefined) {
+      user.profile.skills = typeof skills === 'string'
+        ? skills.split(',').map((skill) => skill.trim()).filter(Boolean)
+        : skills;
+    }
 
     await user.save();
 
