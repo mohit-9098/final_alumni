@@ -1,12 +1,16 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const Event = require('../models/Event');
+
+
 const { auth, authorize } = require('../middleware/auth');
-const Notification = require('../models/Notification');
 
 const router = express.Router();
 
+
+
 // @route   GET /api/events
+
 // @desc    Get all events with filtering
 // @access  Private
 router.get('/', auth, [
@@ -117,8 +121,79 @@ router.get('/my-events', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   GET /api/events/stats
+// @desc    Get event statistics  
+// @access  Private (Admin only)
+router.get('/stats', auth, authorize('admin'), async (req, res) => {
+  try {
+    const totalEvents = await Event.countDocuments({ isActive: true });
+    const upcomingEvents = await Event.countDocuments({ 
+      isActive: true,
+      date: { $gte: new Date() }
+    });
+    const pastEvents = await Event.countDocuments({ 
+      isActive: true,
+      date: { $lt: new Date() }
+    });
+
+    res.json({
+      totalEvents,
+      upcomingEvents,
+      pastEvents
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
+// @route   GET /api/events/my-registrations
+// @desc    Get events user is registered for
+// @access  Private
+router.get('/my-registrations', auth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status = 'upcoming' } = req.query;
+    const skip = (page - 1) * limit;
+    
+    // Build query
+    let query = { 
+      'attendees.user': req.user._id, 
+      isActive: true 
+    };
+    
+    if (status === 'upcoming') {
+      query.date = { $gte: new Date() };
+    } else if (status === 'past') {
+      query.date = { $lt: new Date() };
+    }
+    
+    const events = await Event.find(query)
+      .populate('organizedBy', 'name email profile.currentCompany')
+      .sort({ date: 1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Event.countDocuments(query);
+    
+    res.json({
+      events,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @route   GET /api/events/:id
+
 // @desc    Get event by ID
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
@@ -331,47 +406,5 @@ router.post('/:id/unregister', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/events/my-registrations
-// @desc    Get events user is registered for
-// @access  Private
-router.get('/my-registrations', auth, async (req, res) => {
-  try {
-    const { page = 1, limit = 10, status = 'upcoming' } = req.query;
-    const skip = (page - 1) * limit;
-    
-    // Build query
-    let query = { 
-      'attendees.user': req.user._id, 
-      isActive: true 
-    };
-    
-    if (status === 'upcoming') {
-      query.date = { $gte: new Date() };
-    } else if (status === 'past') {
-      query.date = { $lt: new Date() };
-    }
-    
-    const events = await Event.find(query)
-      .populate('organizedBy', 'name email profile.currentCompany')
-      .sort({ date: 1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-    
-    const total = await Event.countDocuments(query);
-    
-    res.json({
-      events,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 module.exports = router;

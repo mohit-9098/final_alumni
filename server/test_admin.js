@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const User = require('./models/User');
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/alumni_portal', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(async () => {
     console.log('Connected to MongoDB');
     

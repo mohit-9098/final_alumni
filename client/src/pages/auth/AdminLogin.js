@@ -21,10 +21,8 @@ const AdminLogin = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log('Admin login attempt:', { email: data.email, passwordLength: data.password?.length });
     setIsLoading(true);
     const success = await login(data.email, data.password, 'admin');
-    console.log('Login result:', success);
     if (success) {
       navigate(from, { replace: true });
     }
@@ -54,18 +52,7 @@ const AdminLogin = () => {
           <p className="mt-2 text-sm text-gray-600">
             Sign in to access admin dashboard
           </p>
-          <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
-            <p className="text-sm font-semibold text-yellow-800 mb-2">
-              <strong>⚠️ Default Admin Credentials:</strong>
-            </p>
-            <p className="text-sm text-yellow-700">
-              Email: <code className="bg-yellow-100 px-1 rounded">admin@mohit.com</code><br />
-              Password: <code className="bg-yellow-100 px-1 rounded">admin123</code>
-            </p>
-            <p className="text-xs text-yellow-600 mt-2">
-              Use these exact credentials to log in as administrator.
-            </p>
-          </div>
+
         </div>
 
         {/* Login Form */}

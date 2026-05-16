@@ -16,6 +16,7 @@ const Analytics = () => {
     logins: { total: 0, students: 0, alumni: 0 }
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -23,66 +24,73 @@ const Analytics = () => {
 
   const fetchAnalytics = async () => {
     try {
-      // Fetch user stats
-      const userStats = await api.get('/users/stats');
-      const users = {
-        total: userStats.data.totalUsers,
-        students: userStats.data.roleStats.find(r => r._id === 'student')?.count || 0,
-        alumni: userStats.data.roleStats.find(r => r._id === 'alumni')?.count || 0,
-        admins: userStats.data.roleStats.find(r => r._id === 'admin')?.count || 0
-      };
+      setLoading(true);
+      setError(null);
 
-      // Fetch login activity stats
-      const loginStats = await api.get('/users/activity/logins?limit=100&days=30');
-      const logins = {
-        total: loginStats.data.pagination.total,
-        students: loginStats.data.logins.filter(l => l.role === 'student').length,
-        alumni: loginStats.data.logins.filter(l => l.role === 'alumni').length
-      };
+      const [userRes, loginRes, jobRes, mouRes, eventRes, noticeRes, messageRes] = await Promise.allSettled([
+        api.get('/users/stats'),
+        api.get('/users/activity/logins?limit=100&days=30'),
+        api.get('/jobs/stats'),
+        api.get('/mou/stats'),
+        api.get('/events/stats'),
+        api.get('/notices/stats'),
+        api.get('/messages/stats')
+      ]);
 
-      // Fetch job stats
-      const jobStats = await api.get('/jobs?limit=100');
-      const jobs = {
-        total: jobStats.data.pagination.total,
-        active: jobStats.data.jobs.filter(j => j.isActive).length,
-        applications: jobStats.data.jobs.reduce((sum, job) => sum + job.applications.length, 0)
-      };
 
-      // Fetch MOU stats
-      const mouStats = await api.get('/mou/stats');
-      const mous = {
-        total: mouStats.data.totalMOUs,
-        active: mouStats.data.activeMOUs,
-        expired: mouStats.data.expiredMOUs
-      };
+      // Process user stats
+      const users = userRes.status === 'fulfilled' ? {
+        total: userRes.value.data.totalUsers || 0,
+        students: userRes.value.data.roleStats?.find(r => r._id === 'student')?.count || 0,
+        alumni: userRes.value.data.roleStats?.find(r => r._id === 'alumni')?.count || 0,
+        admins: userRes.value.data.roleStats?.find(r => r._id === 'admin')?.count || 0
+      } : { total: 0, students: 0, alumni: 0, admins: 0 };
 
-      // Fetch event stats
-      const eventStats = await api.get('/events?limit=100');
-      const now = new Date();
-      const events = {
-        total: eventStats.data.pagination.total,
-        upcoming: eventStats.data.events.filter(e => new Date(e.date) > now).length,
-        past: eventStats.data.events.filter(e => new Date(e.date) <= now).length
-      };
+      // Login stats
+      const logins = loginRes.status === 'fulfilled' ? {
+        total: loginRes.value.data.pagination?.total || 0,
+        students: loginRes.value.data.logins?.filter(l => l.role === 'student').length || 0,
+        alumni: loginRes.value.data.logins?.filter(l => l.role === 'alumni').length || 0
+      } : { total: 0, students: 0, alumni: 0 };
 
-      // Fetch notice stats
-      const noticeStats = await api.get('/notices/stats');
-      const notices = {
-        total: noticeStats.data.totalNotices,
-        active: noticeStats.data.activeNotices,
-        pinned: noticeStats.data.pinnedNotices
-      };
+      // Job stats - use new /stats
+      const jobs = jobRes.status === 'fulfilled' ? {
+        total: jobRes.value.data.totalJobs || 0,
+        active: jobRes.value.data.activeJobs || 0,
+        applications: jobRes.value.data.totalApplications || 0
+      } : { total: 0, active: 0, applications: 0 };
 
-      // Fetch message stats
-      const messageStats = await api.get('/messages?limit=1');
-      const messages = {
-        total: messageStats.data.pagination.total,
-        unread: messageStats.data.unreadCount
-      };
+      // MOU stats
+      const mous = mouRes.status === 'fulfilled' ? {
+        total: mouRes.value.data.totalMOUs || 0,
+        active: mouRes.value.data.activeMOUs || 0,
+        expired: mouRes.value.data.expiredMOUs || 0
+      } : { total: 0, active: 0, expired: 0 };
+
+      // Event stats - use new /stats
+      const events = eventRes.status === 'fulfilled' ? {
+        total: eventRes.value.data.totalEvents || 0,
+        upcoming: eventRes.value.data.upcomingEvents || 0,
+        past: eventRes.value.data.pastEvents || 0
+      } : { total: 0, upcoming: 0, past: 0 };
+
+      // Notice stats
+      const notices = noticeRes.status === 'fulfilled' ? {
+        total: noticeRes.value.data.totalNotices || 0,
+        active: noticeRes.value.data.activeNotices || 0,
+        pinned: noticeRes.value.data.pinnedNotices || 0
+      } : { total: 0, active: 0, pinned: 0 };
+
+      // Messages - fallback
+      const messages = messageRes.status === 'fulfilled' ? {
+        total: messageRes.value.data.total || 0,
+        unread: messageRes.value.data.unread || 0
+      } : { total: 0, unread: 0 };
 
       setStats({ users, jobs, mous, events, notices, messages, logins });
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
+      setError('Failed to load analytics data. Some stats may be unavailable.');
     } finally {
       setLoading(false);
     }

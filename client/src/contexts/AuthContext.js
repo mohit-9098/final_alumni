@@ -147,7 +147,6 @@ export const AuthProvider = ({ children }) => {
 
   // Login
   const login = async (email, password, role = null) => {
-    console.log('AuthContext login called:', { email, passwordLength: password?.length, role });
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       
@@ -155,10 +154,8 @@ export const AuthProvider = ({ children }) => {
       if (role === 'admin') {
         endpoint = '/auth/admin-login';
       }
-      console.log('Making request to:', endpoint);
       
       const response = await api.post(endpoint, { email, password });
-      console.log('API response:', response.status, response.data);
       
       const { token, user } = response.data;
       

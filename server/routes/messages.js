@@ -77,6 +77,29 @@ router.get('/', auth, [
   }
 });
 
+// @route   GET /api/messages/stats
+// @desc    Get message statistics (for admin analytics)
+// @access  Private
+router.get('/stats', auth, async (req, res) => {
+  try {
+    const total = await Message.countDocuments({ isDeleted: false });
+    const unread = await Message.countDocuments({ 
+      isRead: false, 
+      isDeleted: false,
+      recipient: { $ne: null }
+    });
+
+    res.json({
+      total,
+      unread
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // @route   GET /api/messages/:id
 // @desc    Get message by ID
 // @access  Private

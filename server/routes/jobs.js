@@ -2,8 +2,9 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const Job = require('../models/Job');
 const User = require('../models/User');
-const { auth, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+
+const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -101,6 +102,32 @@ router.get('/my-posted', auth, authorize('alumni', 'admin'), async (req, res) =>
   }
 });
 
+// @route   GET /api/jobs/stats
+// @desc    Get job statistics
+// @access  Private (Admin only)
+router.get('/stats', auth, authorize('admin'), async (req, res) => {
+  try {
+    const totalJobs = await Job.countDocuments({ isActive: true });
+    const activeJobs = await Job.countDocuments({ 
+      isActive: true, 
+      applicationDeadline: { $gt: new Date() } 
+    });
+    const totalApplications = await Job.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: '$applications' },
+      { $group: { _id: null, total: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      totalJobs,
+      activeJobs,
+      totalApplications: totalApplications[0]?.total || 0
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @route   GET /api/jobs/:id
 // @desc    Get job by ID

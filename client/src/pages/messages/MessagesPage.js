@@ -15,10 +15,6 @@ const MessagesPage = () => {
     isRead: ''
   });
 
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
-
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
@@ -32,7 +28,11 @@ const MessagesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, filter.type, filter.isRead, searchTerm]);
+  }, [api, filter, searchTerm]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   const markAsRead = useCallback(async (messageId) => {
     try {

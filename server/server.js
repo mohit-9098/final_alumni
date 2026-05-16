@@ -31,7 +31,7 @@ app.use('/api/', limiter);
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? 'https://your-production-domain.com' 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
   credentials: true
 }));
 
@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/alumni_portal', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -90,6 +90,10 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is running' });
 });
 
+// Serve React build and let client-side routes such as /login work on refresh.
+const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+app.use(express.static(clientBuildPath));
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -99,9 +103,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler for unknown API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
+});
+
+// React Router fallback for non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
