@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { FileText, Search, Filter, Edit, Trash2, Eye, Plus, X } from 'lucide-react';
+import { FileText, Search, Edit, Trash2, Eye, Plus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MOUManagement = () => {
@@ -33,11 +33,7 @@ const MOUManagement = () => {
     objectives: ''
   });
 
-  useEffect(() => {
-    fetchMOUs();
-  }, [filter]);
-
-  const fetchMOUs = async () => {
+  const fetchMOUs = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (filter.category) params.append('category', filter.category);
@@ -50,7 +46,11 @@ const MOUManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, filter]);
+
+  useEffect(() => {
+    fetchMOUs();
+  }, [fetchMOUs]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

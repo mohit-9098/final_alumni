@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -14,15 +14,7 @@ const MessageDetails = () => {
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    if (userId) {
-      fetchConversation();
-    } else {
-      fetchMessage();
-    }
-  }, [id, userId]);
-
-  const fetchMessage = async () => {
+  const fetchMessage = useCallback(async () => {
     try {
       const response = await api.get(`/messages/${id}`);
       setMessage(response.data);
@@ -31,9 +23,9 @@ const MessageDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, id]);
 
-  const fetchConversation = async () => {
+  const fetchConversation = useCallback(async () => {
     try {
       const response = await api.get(`/messages/conversation/${userId}`);
       setConversation(response.data);
@@ -42,7 +34,15 @@ const MessageDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, userId]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchConversation();
+    } else {
+      fetchMessage();
+    }
+  }, [fetchConversation, fetchMessage, userId]);
 
   const handleReply = async () => {
     if (!replyText.trim()) return;

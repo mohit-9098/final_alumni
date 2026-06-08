@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Calendar, Search, Filter, MapPin, Clock, Users, ExternalLink } from 'lucide-react';
+import { Calendar, Search, MapPin, Clock, Users } from 'lucide-react';
 
 const EventsPage = () => {
   const { api } = useAuth();
@@ -15,11 +15,7 @@ const EventsPage = () => {
     status: 'upcoming'
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, [filter, searchTerm]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const params = new URLSearchParams({ status: filter.status, limit: 20 });
       if (filter.type) params.append('type', filter.type);
@@ -32,8 +28,11 @@ const EventsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, filter, searchTerm]);
 
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">

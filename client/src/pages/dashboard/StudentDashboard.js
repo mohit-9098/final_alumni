@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -10,9 +10,8 @@ import {
   Calendar,
   Bell,
   MessageSquare,
-  TrendingUp,
+  
   Clock,
-  Award,
   BookOpen
 } from 'lucide-react';
 
@@ -32,11 +31,7 @@ const StudentDashboard = () => {
   const [featuredJobs, setFeaturedJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -75,7 +70,11 @@ const StudentDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [api, notifications, user?.role]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (isLoading) {
     return (

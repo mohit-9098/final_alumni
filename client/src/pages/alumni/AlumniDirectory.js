@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Users, Search, Filter, Mail, Phone, Building, MapPin, UserPlus, MessageCircle, AlertCircle } from 'lucide-react';
+import { Users, Search, Mail, Building, MapPin, UserPlus, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AlumniDirectory = () => {
@@ -19,23 +19,18 @@ const AlumniDirectory = () => {
   const [connections, setConnections] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchConnections();
-  }, []);
-
-  useEffect(() => {
-    fetchAlumni();
-  }, [searchTerm, yearFilter, branchFilter, schoolFilter]);
-
-  const fetchConnections = async () => {
+  const fetchConnections = useCallback(async () => {
     try {
       const response = await api.get('/users/connections');
       setConnections(response.data.connections);
     } catch (error) {
       console.error('Failed to fetch connections:', error);
     }
-  };
+  }, [api]);
 
+  useEffect(() => {
+    fetchConnections();
+  }, [fetchConnections]);
   const getConnectionStatus = (userId) => {
     const conn = connections.find(c => c.user._id === userId);
     return conn ? conn.status : 'none';
@@ -95,6 +90,10 @@ const AlumniDirectory = () => {
       setLoading(false);
     }
   }, [api, searchTerm, yearFilter, branchFilter, schoolFilter]);
+
+  useEffect(() => {
+    fetchAlumni();
+  }, [fetchAlumni]);
 
   if (loading) {
     return (
@@ -305,11 +304,11 @@ const AlumniDirectory = () => {
                     </div>
                   );
                 })()}
-                <div className="flex flex-wrap gap-1.5 sm:space-x-2 sm:flex-nowrap sm:gap-0">
+                <div className="mt-2 mb-3 flex flex-wrap gap-2">
                   {getConnectionStatus(alumniUser._id) !== 'accepted' && (
                     <button 
                       onClick={() => handleConnect(alumniUser._id)}
-                      className="btn btn-success btn-sm flex items-center justify-center flex-1 sm:flex-none sm:w-auto min-w-[72px]"
+                      className="btn btn-success btn-sm flex items-center justify-center w-full sm:w-auto min-w-[72px]"
                       disabled={getConnectionStatus(alumniUser._id) === 'pending'}
                       title="Connect with alumni"
                     >
@@ -319,14 +318,14 @@ const AlumniDirectory = () => {
                   )}
                   <button 
                     onClick={() => handleMessage(alumniUser._id)}
-                    className="btn btn-primary btn-sm flex items-center justify-center flex-1 sm:flex-none sm:w-auto min-w-[56px]"
+                    className="btn btn-primary btn-sm flex items-center justify-center w-full sm:w-auto min-w-[56px]"
                     title="Send message"
                   >
                     <MessageCircle className="w-3 h-3 mr-1 sm:mr-1.5" />
                     <span className="hidden sm:inline">Message</span>
                   </button>
                   <button 
-                    className="btn btn-secondary btn-sm flex items-center justify-center flex-1 sm:flex-none sm:w-auto min-w-[56px]"
+                    className="btn btn-secondary btn-sm flex items-center justify-center w-full sm:w-auto min-w-[56px]"
                     onClick={() => navigate(`/profile/${alumniUser._id}`)}
                     title="View profile"
                   >

@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { MessageSquare, Search, Filter, Clock, User, Send, Eye, EyeOff } from 'lucide-react';
+import { MessageSquare, Search, Clock, User, Send, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MessagesPage = () => {
-  const { api, user } = useAuth();
+  const { api } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,9 +37,11 @@ const MessagesPage = () => {
   const markAsRead = useCallback(async (messageId) => {
     try {
       await api.put(`/messages/${messageId}/read`);
-      setMessages(messages.map(msg => 
-        msg._id === messageId ? { ...msg, isRead: true } : msg
-      ));
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === messageId ? { ...msg, isRead: true } : msg
+        )
+      );
       toast.success('Marked as read');
     } catch (error) {
       toast.error('Failed to mark as read');

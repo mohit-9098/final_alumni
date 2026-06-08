@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Users, Check, X, UserCheck, Clock, MessageCircle } from 'lucide-react';
+import { Users, Check, X, UserCheck, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ConnectionRequests = () => {
-  const { api, user } = useAuth();
+  const { api } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/users/connections/pending');
@@ -25,14 +21,18 @@ const ConnectionRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const handleAccept = useCallback(async (studentId) => {
     try {
       setProcessingId(studentId);
       await api.put(`/users/connections/${studentId}/accept`, { status: 'accepted' });
       toast.success('Connection request accepted!');
-      setRequests(requests.filter(r => r._id !== studentId));
+      setRequests((prevRequests) => prevRequests.filter((r) => r._id !== studentId));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to accept request');
     } finally {
@@ -45,7 +45,7 @@ const ConnectionRequests = () => {
       setProcessingId(studentId);
       await api.put(`/users/connections/${studentId}/accept`, { status: 'rejected' });
       toast.success('Connection request rejected');
-      setRequests(requests.filter(r => r._id !== studentId));
+      setRequests((prevRequests) => prevRequests.filter((r) => r._id !== studentId));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject request');
     } finally {
@@ -152,21 +152,21 @@ const ConnectedStudents = ({ api }) => {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchConnections();
-  }, []);
-
-  const fetchConnections = async () => {
+  const fetchConnections = useCallback(async () => {
     try {
       const response = await api.get('/users/connections');
-      const accepted = response.data.connections.filter(c => c.status === 'accepted');
+      const accepted = response.data.connections.filter((c) => c.status === 'accepted');
       setConnections(accepted);
     } catch (error) {
       console.error('Failed to fetch connections:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchConnections();
+  }, [fetchConnections]);
 
   if (loading || connections.length === 0) return null;
 

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { FileText, Search, Filter, Building, Calendar, ExternalLink, Eye } from 'lucide-react';
+import { FileText, Search, Building, Calendar, ExternalLink, Eye } from 'lucide-react';
 
 const MOUPage = () => {
   const { api } = useAuth();
@@ -14,11 +14,7 @@ const MOUPage = () => {
     status: ''
   });
 
-  useEffect(() => {
-    fetchMOUs();
-  }, []);
-
-  const fetchMOUs = async () => {
+  const fetchMOUs = useCallback(async () => {
     try {
       const response = await api.get('/mou?limit=20');
       setMous(response.data.mous);
@@ -27,7 +23,11 @@ const MOUPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchMOUs();
+  }, [fetchMOUs]);
 
   if (loading) {
     return (

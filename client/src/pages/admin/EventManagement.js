@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Calendar, Search, Filter, Edit, Trash2, Eye, Plus, Users, X } from 'lucide-react';
+import { Calendar, Search, Edit, Trash2, Eye, Plus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const EventManagement = () => {
@@ -34,11 +34,7 @@ const EventManagement = () => {
     report: ''
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, [filter]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
@@ -53,7 +49,12 @@ const EventManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, searchTerm, filter]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

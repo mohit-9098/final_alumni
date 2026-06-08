@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { FileText, Building, Calendar, User, ArrowLeft, ExternalLink, Eye, Clock } from 'lucide-react';
+import { Building, Calendar, ArrowLeft, ExternalLink, Eye } from 'lucide-react';
 
 const MOUDetails = () => {
   const { id } = useParams();
@@ -10,11 +10,7 @@ const MOUDetails = () => {
   const [mou, setMou] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMOU();
-  }, [id]);
-
-  const fetchMOU = async () => {
+  const fetchMOU = useCallback(async () => {
     try {
       const response = await api.get(`/mou/${id}`);
       setMou(response.data);
@@ -23,7 +19,11 @@ const MOUDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, id]);
+
+  useEffect(() => {
+    fetchMOU();
+  }, [fetchMOU]);
 
   if (loading) {
     return (

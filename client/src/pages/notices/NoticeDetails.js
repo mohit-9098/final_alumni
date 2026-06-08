@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { BookOpen, ArrowLeft, Calendar, User, Eye, Pin, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Eye, Pin, FileText } from 'lucide-react';
 
 const NoticeDetails = () => {
   const { id } = useParams();
@@ -10,11 +10,7 @@ const NoticeDetails = () => {
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchNotice();
-  }, [id]);
-
-  const fetchNotice = async () => {
+  const fetchNotice = useCallback(async () => {
     try {
       const response = await api.get(`/notices/${id}`);
       setNotice(response.data);
@@ -23,7 +19,11 @@ const NoticeDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, id]);
+
+  useEffect(() => {
+    fetchNotice();
+  }, [fetchNotice]);
 
   if (loading) {
     return (

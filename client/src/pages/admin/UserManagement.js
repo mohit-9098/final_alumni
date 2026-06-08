@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Users, Search, Filter, Edit, Trash2, UserPlus, Shield, UserCheck } from 'lucide-react';
+import { Users, Search, Edit, Trash2, Shield, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const UserManagement = () => {
@@ -40,9 +40,11 @@ const UserManagement = () => {
   const handleToggleActive = useCallback(async (userId, currentStatus) => {
     try {
       await api.put(`/users/${userId}`, { isActive: !currentStatus });
-      setUsers(users.map(user => 
-        user._id === userId ? { ...user, isActive: !currentStatus } : user
-      ));
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === userId ? { ...user, isActive: !currentStatus } : user
+        )
+      );
       toast.success('User status updated');
     } catch (error) {
       toast.error('Failed to update user status');
@@ -54,7 +56,7 @@ const UserManagement = () => {
     
     try {
       await api.delete(`/users/${userId}`);
-      setUsers(users.filter(user => user._id !== userId));
+      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
       toast.success('User deleted successfully');
     } catch (error) {
       toast.error('Failed to delete user');

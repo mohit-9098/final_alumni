@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Briefcase, Search, Filter, Edit, Trash2, Eye, UserCheck, Plus, X } from 'lucide-react';
+import { Briefcase, Search, Edit, Trash2, Eye, Plus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const JobManagement = () => {
@@ -31,11 +31,7 @@ const JobManagement = () => {
     benefits: ''
   });
 
-  useEffect(() => {
-    fetchJobs();
-  }, [filter]);
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (filter.type) params.append('type', filter.type);
@@ -49,7 +45,11 @@ const JobManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, filter]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

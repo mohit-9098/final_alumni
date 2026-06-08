@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Activity, Search, Filter, Download, BarChart3 } from 'lucide-react';
+import { Activity, Search, Download, BarChart3 } from 'lucide-react';
 
 const LoginActivity = () => {
   const { api } = useAuth();
@@ -19,11 +19,7 @@ const LoginActivity = () => {
     pages: 0
   });
 
-  useEffect(() => {
-    fetchLoginActivity();
-  }, [filter.role, filter.days, pagination.page]);
-
-  const fetchLoginActivity = async () => {
+  const fetchLoginActivity = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -40,7 +36,11 @@ const LoginActivity = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, filter.role, filter.days, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    fetchLoginActivity();
+  }, [fetchLoginActivity]);
 
   const filteredLogins = logins.filter(login =>
     login.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

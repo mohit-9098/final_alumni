@@ -9,7 +9,6 @@ import {
   Info,
   HelpCircle,
   CheckCircle2,
-  Sparkles,
   Globe,
 } from 'lucide-react';
 

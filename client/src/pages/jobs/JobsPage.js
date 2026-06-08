@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Briefcase, Search, Filter, MapPin, Clock, Building, Eye, UserCheck } from 'lucide-react';
+import { Briefcase, Search, MapPin, Clock, Building, Eye, UserCheck } from 'lucide-react';
 
 const JobsPage = ({ myPosted = false }) => {
   const { api, user } = useAuth();
@@ -15,11 +15,8 @@ const JobsPage = ({ myPosted = false }) => {
     location: ''
   });
 
-  useEffect(() => {
-    fetchJobs();
-  }, [myPosted]);
-
-  const fetchJobs = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchJobs = useCallback(async () => {
     try {
       const endpoint = myPosted ? '/jobs/my-posted' : '/jobs';
       const response = await api.get(endpoint);
@@ -29,7 +26,13 @@ const JobsPage = ({ myPosted = false }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, myPosted]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  
 
   if (loading) {
     return (

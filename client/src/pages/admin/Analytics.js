@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -16,13 +16,9 @@ const Analytics = () => {
     logins: { total: 0, students: 0, alumni: 0 }
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -88,13 +84,17 @@ const Analytics = () => {
       } : { total: 0, unread: 0 };
 
       setStats({ users, jobs, mous, events, notices, messages, logins });
-    } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+    } catch (_error) {
+      console.error('Failed to fetch analytics:', _error);
       setError('Failed to load analytics data. Some stats may be unavailable.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   if (loading) {
     return (

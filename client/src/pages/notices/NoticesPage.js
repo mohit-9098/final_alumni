@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { BookOpen, Search, Filter, Calendar, Pin, Eye } from 'lucide-react';
+import { BookOpen, Search, Calendar, Pin, Eye } from 'lucide-react';
 
 const NoticesPage = () => {
   const { api } = useAuth();
@@ -14,11 +14,7 @@ const NoticesPage = () => {
     priority: ''
   });
 
-  useEffect(() => {
-    fetchNotices();
-  }, []);
-
-  const fetchNotices = async () => {
+  const fetchNotices = useCallback(async () => {
     try {
       const response = await api.get('/notices?limit=20');
       setNotices(response.data.notices);
@@ -27,7 +23,11 @@ const NoticesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchNotices();
+  }, [fetchNotices]);
 
   if (loading) {
     return (

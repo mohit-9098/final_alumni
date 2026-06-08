@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,18 +18,18 @@ const ComposeMessage = () => {
     formState: { errors },
   } = useForm();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await api.get('/users?limit=50');
       setUsers(response.data.users.filter(u => u._id !== user._id));
     } catch (error) {
       console.error('Failed to fetch users:', error);
     }
-  };
+  }, [api, user]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const onSubmit = async (data) => {
     setLoading(true);

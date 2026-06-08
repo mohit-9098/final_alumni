@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { User, Mail, Phone, MapPin, Building, Calendar, Edit2, Save, Camera } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit2, Save, Camera } from 'lucide-react';
 
 const ProfilePage = () => {
   const { user, updateProfile } = useAuth();

@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { Bell, Check, CheckSquare, Trash2, Search, Filter, Clock, ExternalLink } from 'lucide-react';
+import { Bell, Check, CheckSquare, Trash2, Search, Clock, ExternalLink } from 'lucide-react';
 
 const NotificationsPage = () => {
-  const { api } = useAuth();
   const { notifications, fetchNotifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState({
     type: '',
@@ -16,7 +12,7 @@ const NotificationsPage = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId) => {
     await markAsRead(notificationId);

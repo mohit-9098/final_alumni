@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
@@ -99,7 +99,7 @@ export const NotificationProvider = ({ children }) => {
   const { api, isAuthenticated } = useAuth();
 
   // Fetch notifications
-  const fetchNotifications = async (page = 1, limit = 10) => {
+  const fetchNotifications = useCallback(async (page = 1, limit = 10) => {
     if (!isAuthenticated) return;
     
     try {
@@ -114,7 +114,7 @@ export const NotificationProvider = ({ children }) => {
       console.error('Failed to fetch notifications:', error);
       dispatch({ type: NOTIFICATION_ACTIONS.FETCH_FAILURE });
     }
-  };
+  }, [api, isAuthenticated]);
 
   // Mark notification as read
   const markAsRead = async (notificationId) => {
@@ -187,7 +187,7 @@ export const NotificationProvider = ({ children }) => {
   };
 
   // Fetch unread count
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     if (!isAuthenticated) return;
     
     try {
@@ -199,7 +199,7 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }
-  };
+  }, [api, isAuthenticated]);
 
   // Auto-refresh notifications
   useEffect(() => {
@@ -212,7 +212,7 @@ export const NotificationProvider = ({ children }) => {
       
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [fetchNotifications, fetchUnreadCount, isAuthenticated]);
 
   const value = {
     ...state,
