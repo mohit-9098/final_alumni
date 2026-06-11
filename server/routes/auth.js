@@ -149,25 +149,33 @@ router.post('/admin-login', [
     }
 
     const { email, password } = req.body;
-    console.log('Admin login attempt:', { email, passwordLength: password?.length });
+    // Check for admin user (case/whitespace safe)
+    const normalizedEmail = String(email).trim().toLowerCase();
 
-    // Check for admin user
-    const user = await User.findOne({ email: email.toLowerCase().trim(), role: 'admin' });
-    console.log('User found:', !!user, 'Role:', user?.role);
-    
+    const user = await User.findOne({
+      role: 'admin',
+      email: { $regex: `^${normalizedEmail}$`, $options: 'i' },
+    });
+
     if (!user) {
-      console.log('Admin not found for email:', email);
-      return res.status(400).json({ message: 'Invalid admin credentials' });
+      const anyUser = await User.findOne({
+        email: { $regex: `^${normalizedEmail}$`, $options: 'i' },
+      });
+
+      if (anyUser && anyUser.role !== 'admin') {
+        return res.status(400).json({ message: 'This account is not an admin user' });
+      }
+
+      return res.status(400).json({ message: 'Invalid admin credentials (email or password)' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password.trim());
-    console.log('Password match:', isMatch);
-    
+
     if (!isMatch) {
-      console.log('Password mismatch for user:', email);
-      return res.status(400).json({ message: 'Invalid admin credentials' });
+      return res.status(400).json({ message: 'Invalid admin credentials (email or password)' });
     }
+
 
     // Check if user is active
     if (!user.isActive) {
