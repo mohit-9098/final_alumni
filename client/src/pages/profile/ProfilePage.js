@@ -58,8 +58,8 @@ const ProfilePage = () => {
         formData.append('avatar', avatarFile);
       }
 
-      await updateProfile(formData);
-      setEditing(false);
+      const saved = await updateProfile(formData);
+      if (saved) setEditing(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
     } finally {

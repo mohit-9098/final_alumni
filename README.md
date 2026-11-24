@@ -151,7 +151,7 @@ npm run dev
 
 # Or start separately
 npm run server    # Starts backend on port 5000
-npm run client    # Starts frontend on port 3000
+npm run client    # Starts frontend on port 3002
 ```
 
 #### Production Mode

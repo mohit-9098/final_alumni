@@ -65,7 +65,10 @@ const JobDetails = () => {
     );
   }
 
-  const hasApplied = job.applications.some(app => app.user._id === user?._id);
+  const hasApplied = (job.applications || []).some((application) => {
+    const applicantId = application.user?._id || application.user;
+    return applicantId?.toString() === user?._id?.toString();
+  });
 
   return (
     <div className="space-y-6">
