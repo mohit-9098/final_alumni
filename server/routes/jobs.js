@@ -135,7 +135,8 @@ router.get('/stats', auth, authorize('admin'), async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
-      .populate('postedBy', 'name email profile.currentCompany profile.jobTitle');
+      .populate('postedBy', 'name email profile.currentCompany profile.jobTitle')
+      .populate('applications.user', 'name email profile.graduationYear');
     
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });

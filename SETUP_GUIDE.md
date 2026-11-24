@@ -119,7 +119,7 @@ npm run dev
 
 This starts both:
 - **Backend**: `http://localhost:5000`
-- **Frontend**: `http://localhost:3000`
+- **Frontend**: `http://localhost:3002`
 
 ### Individual Services
 
@@ -147,16 +147,16 @@ NODE_ENV=production npm start
 
 ### URLs
 
-- **Frontend**: `http://localhost:3000`
+- **Frontend**: `http://localhost:3002`
 - **Backend API**: `http://localhost:5000/api`
 
 ### Login Portal
 
-1. Go to `http://localhost:3000/login`
+1. Go to `http://localhost:3002/login`
 2. Select login type:
-   - **Student Login** → `http://localhost:3000/login/student`
-   - **Alumni Login** → `http://localhost:3000/login/alumni`
-   - **Admin Login** → `http://localhost:3000/login/admin`
+   - **Student Login** → `http://localhost:3002/login/student`
+   - **Alumni Login** → `http://localhost:3002/login/alumni`
+   - **Admin Login** → `http://localhost:3002/login/admin`
 
 ### Default Test Accounts
 

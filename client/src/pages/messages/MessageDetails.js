@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { MessageSquare, ArrowLeft, User, Clock, Reply, Trash2, Send } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const MessageDetails = () => {
   const { id, userId } = useParams();
@@ -49,19 +50,37 @@ const MessageDetails = () => {
 
     setSending(true);
     try {
-      const endpoint = userId ? `/messages/${id}/reply` : `/messages/${id}/reply`;
+      const conversationMessages = conversation?.messages || [];
+      const originalMessageId = userId
+        ? conversationMessages[0]?._id
+        : id;
+      if (!originalMessageId) {
+        toast.error('There is no message to reply to yet. Start a new message instead.');
+        return;
+      }
+      const endpoint = `/messages/${originalMessageId}/reply`;
       await api.post(endpoint, { content: replyText });
       setReplyText('');
       if (userId) {
-        fetchConversation();
+        await fetchConversation();
       } else {
-        fetchMessage();
+        await fetchMessage();
       }
     } catch (error) {
       console.error('Failed to send reply:', error);
-      alert('Failed to send reply');
+      toast.error(error.response?.data?.message || 'Failed to send reply');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/messages/${id}`);
+      toast.success('Message deleted');
+      navigate('/messages', { replace: true });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete message');
     }
   };
 
@@ -89,7 +108,7 @@ const MessageDetails = () => {
 
         <div className="card">
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {conversation.messages.map((msg) => (
+            {[...conversation.messages].reverse().map((msg) => (
               <div
                 key={msg._id}
                 className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
@@ -235,7 +254,7 @@ const MessageDetails = () => {
               <Reply className="w-4 h-4 mr-2" />
               Reply
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => {/* TODO: delete implementation */}}>
+            <button className="btn btn-secondary btn-sm" onClick={handleDelete}>
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
             </button>

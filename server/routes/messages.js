@@ -13,14 +13,21 @@ router.get('/', auth, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('type').optional().isIn(['sent', 'received']).withMessage('Type must be sent or received'),
-  query('isRead').optional().isBoolean().withMessage('isRead must be a boolean')
+  query('isRead').optional().isBoolean().withMessage('isRead must be a boolean'),
+  query('search').optional().isString().isLength({ max: 100 }).withMessage('Search must be 100 characters or fewer')
 ], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { 
       page = 1, 
       limit = 10, 
       type, 
       isRead,
+      search,
       sortBy = 'createdAt'
     } = req.query;
     
@@ -40,6 +47,16 @@ router.get('/', auth, [
     
     if (isRead !== undefined) {
       query.isRead = isRead === 'true';
+    }
+
+    if (search) {
+      const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$and = [{
+        $or: [
+          { subject: { $regex: safeSearch, $options: 'i' } },
+          { content: { $regex: safeSearch, $options: 'i' } },
+        ],
+      }];
     }
     
     const skip = (page - 1) * limit;

@@ -18,15 +18,22 @@ const JobsPage = ({ myPosted = false }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchJobs = useCallback(async () => {
     try {
-      const endpoint = myPosted ? '/jobs/my-posted' : '/jobs';
+      const params = new URLSearchParams();
+      if (!myPosted) {
+        if (searchTerm.trim()) params.set('search', searchTerm.trim());
+        if (filters.type) params.set('type', filters.type);
+        if (filters.experience) params.set('experience', filters.experience);
+        if (filters.location.trim()) params.set('location', filters.location.trim());
+      }
+      const endpoint = myPosted ? '/jobs/my-posted' : `/jobs?${params.toString()}`;
       const response = await api.get(endpoint);
-      setJobs(response.data.jobs);
+      setJobs(response.data.jobs || []);
     } catch (error) {
       console.error('Failed to fetch jobs:', error);
     } finally {
       setLoading(false);
     }
-  }, [api, myPosted]);
+  }, [api, myPosted, searchTerm, filters]);
 
   useEffect(() => {
     fetchJobs();
@@ -82,6 +89,13 @@ const JobsPage = ({ myPosted = false }) => {
             <option value="internship">Internship</option>
             <option value="remote">Remote</option>
           </select>
+          <input
+            type="text"
+            placeholder="Filter by location"
+            className="input"
+            value={filters.location}
+            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+          />
           <select
             className="input"
             value={filters.experience}
